@@ -1,0 +1,23 @@
+{
+    "name": "pribin",
+    "version": "1.0.0",
+    "description": "Private bin but in NodeJs >>>>>>>> php",
+    "main": "lib/index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc",
+        "start": "node lib/index.js",
+        "all": "npm run build && npm start"
+    },
+    "author": "aquayayawoke",
+    "license": "ISC",
+    "dependencies": {
+        "@types/express": "^4.17.0",
+        "dotenv": "^8.0.0",
+        "ejs": "^2.6.2",
+        "express": "^4.17.1"
+    },
+    "devDependencies": {
+        "typescript": "^2.7.2"
+    }
+}

@@ -1,0 +1,32 @@
+<h1> Hello EJS </h1>
+<p>IT <%= works ? "" : "doesn't" %> works !</p>
+
+<main>
+    <section>
+        <ul>
+            <li>Coucou</li>
+            <li>Oui</li>
+        </ul>
+    </section>
+    <section>
+        <article>
+            <p class="col-md-12">
+                <textarea id="message" name="message" cols="80" rows="25"
+                    class="form-control"></textarea><br/>
+
+                <label for="key">Private key: </label>
+                <input type="text" name="key" id="key">
+            </p>
+            <button onclick="save()">Save</button>
+        </article>
+    </section>
+</main>
+
+<script>
+    function save() {
+        const text = document.getElementById('message').value;
+        const key = document.getElementById('key').value;
+
+        window.document.location.href = `/r/${text}/${key}`;
+    }
+</script>

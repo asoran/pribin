@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
+    <script type="text/javascript" src="javascript/crypt.js"></script>
+    <title>Pribin</title>
+</head>
+<body>
+    <div>
+        <label for="text"></label>
+        <textarea name="text" cols="50" rows="20" id="text" type="text"></textarea>
+        <br>
+        <button onclick="createNewMessage()">New Message</button>
+        <div id="url"></div>
+    </div>
+
+</body>
+
+<script>
+    const keySize = 16;
+
+    function createNewMessage() {
+        // ---- Encrypt
+        const key = generateKey(keySize);
+        const text = document.getElementById('text').value;
+
+        // Put the key in the url as base64 text
+        const url = str2b64([...key].map(x => String.fromCharCode(x)).join(''));
+        const cipher = encryptText(text, key);
+
+        // ---- Decrypt
+        // Decode the url to get the url (b64 -> Uint8Array)
+        const _key = new Uint8Array(b642str(url).split('').map(x => x.charCodeAt(0)));
+        const decoded = decryptText(cipher, _key);
+
+        console.log(cipher);
+        console.log(decoded);
+        console.log(url);
+
+        fetch('/api/v1/message/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                msg: cipher,
+            }),
+        })
+        .then(x => x.json())
+        .then(x => {
+            const pass = false;
+
+            console.log('hash', x);
+            const linkUrl = `/s/?${x.id}${pass?'=1':''}#${url}`;
+            const link = `<a href=${linkUrl}>${linkUrl}</a>`
+            console.log(link);
+            
+            document.getElementById('url').innerHTML = link;
+        });
+    }
+
+</script>
+
+</html>
