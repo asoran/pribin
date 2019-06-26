@@ -57,12 +57,11 @@ const generayeRandomUint8Array = (size) => window.crypto.getRandomValues(new Uin
 async function generateKey(keySize) {
     return await window.crypto.subtle.generateKey({
         name: 'AES-GCM',
-        length: keySize,
-    }, false, ['encrypt', 'decrypt']);
+        length: keySize, // 128, 192, or 256.
+    }, false, ['encrypt', 'decrypt', 'deriveKey']);
 }
 
 async function encrypt(params, key, data) {
-
     return await window.crypto.subtle.encrypt(params, key, data);
 }
 
@@ -70,47 +69,64 @@ async function decrypt(params, key, data) {
     return await window.crypto.subtle.decrypt(params, key, data);
 }
 
+
+(async () => {
+
+    key = await crypto.subtle.importKey(
+        'raw',
+        a,
+        'AES-GCM',
+        false,
+        ['encrypt', 'decrypt',],
+    );
+
+    console.log(new Uint8Array(await encrypt(key, 'Salut :D')));
+
+})();
+
+
 // EmPkHSvY4xZvuQV9expMYZP2VKNeiV8QSZbnQrAyZXEDvbQRSXVrXg==
-const TEXT_A_CODE = 'Coucou 😮';
+const TEXT_A_CODE = 'Coucou 😮Coucou 😮Coucou 😮Coucou 😮';
 async function send(msg) {
     let plainArr = stringToArrayBuffer(stringToUtf8(msg));
 
-    let iv = generayeRandomUint8Array(12); // 96 bits
+    let iv = generayeRandomUint8Array(96/8); // 96 bits/8 = 12
+
     let keyArr = await generateKey(256);
 
     let params = {
         name: 'AES-GCM',
-        iv,
-        
-        tagLength: 128,
+        iv, // 96 bits
+    
+        tagLength: 128, // 96, 104, 112, 120 or 128
     }
 
     console.log('key', keyArr);
-    let cipherArr = await encrypt(params, keyArr, plainArr);
+    let cipherArr = new Uint8Array(await encrypt(params, keyArr, plainArr));
     console.log('arr', cipherArr);
     let cipherPlain = str2b64(arrayBufferToString(cipherArr));
-
+    console.log("-----");
     console.log(msg);
     console.log(plainArr);
     console.log(params);
     console.log(keyArr);
+    console.log('iv', iv);
     console.log(cipherArr);
     console.log(cipherPlain);
+    console.log(cipherPlain.length);
+    console.log("-----");
 
-    let keyPlain = str2b64(arrayBufferToString(keyArr));
-    send(params, keyPlain, cipherPlain);
+    get(params, keyArr, cipherPlain);
 }
 
 async function get(params, key, cipherPlain) {
     console.log(cipherPlain);
-    console.log(key);
-    let cipherArr = stringToArrayBuffer(b642str(cipherPlain));
-    let keyArr = stringToArrayBuffer(b642str(key));
 
-    let msgArr = await decrypt(params, keyArr, cipherArr);
+    let cipherArr = stringToArrayBuffer(b642str(cipherPlain));
+
+    let msgArr = new Uint8Array(await decrypt(params, key, cipherArr));
     let msgPlain = utf8ToString(arrayBufferToString(msgArr));
 
-    console.log(keyArr);
     console.log(cipherArr);
     console.log(msgArr);
     console.log(msgPlain);

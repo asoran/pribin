@@ -100,3 +100,58 @@ function rand(min, max) {
     // "Text may be any length you wish, no padding is required."
 
 })();
+
+function toRegional(str) {
+    return str
+        .toUpperCase()
+        .split('')
+        .map(x => 
+            String.fromCodePoint(127462 + (x.charCodeAt(0) - 'A'.charCodeAt(0)))
+        ).join(''); // > 🇦 <
+}
+
+from = (b) => {return {convert: (nb) => {return {to: (b2) => parseInt(nb, b).toString(b2) }}}};
+from(2).convert('11111111').to(16); // FF
+
+(() => {
+	let arbre = ((mots) => {
+		let a = mots.split(' ');
+		let all = new Array();
+
+		const appendArray = (arr, word) => {
+			if(word === '')
+				return;
+			let c = word[0];
+			if(arr[c] === undefined)
+				arr[c] = new Array();
+			appendArray(arr[c], word.substring(1));
+		};
+
+		a.forEach(x => appendArray(all, x));
+
+		console.log(all);
+		return all;
+	})("Je ne sais pas si");
+
+	print = (arr, s) => {
+		if(Object.keys(arr).length == 0)
+			console.log()//s);
+		else {
+			Object.keys(arr).forEach(c => {
+				let ss = s + c;
+				console.log('>'.repeat(ss.length) + ' ' + c);
+				print(arr[c], ss);
+			});
+		}
+	}
+
+	print(arbre, '');
+
+})();
+
+/*
+Zalando API guidelines
+	https://opensource.zalando.com/restful-api-guidelines/#100
+OpenAPI Swagger
+    https://openapi-map.apihandyman.io/#objectchangelog
+*/
