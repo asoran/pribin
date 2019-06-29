@@ -16,13 +16,13 @@ router.get('/:hash', (req, res) => {
     const m = messageService.getMessageAndCheck(hash);
 
     if(m === undefined) {
-        res.status(404).json({message: null, error: 'No message found'});
+        res.json({message: null, error: 'No message found'});
     } else {
         res.json({message: m});
     }
 });
 
-router.post('/', (req, res) => {
+router.post('/new', (req, res) => {
 
     const messageService = new MessageService();
     console.log(req.body);
@@ -32,7 +32,8 @@ router.post('/', (req, res) => {
 
     const hash = messageService.register({
         content: req.body.msg, key: 'key', deleteAfterFirstRead: false,
-        timeCreate: Date.now(), timeDelete: Date.now()+999999999
+        timeCreate: Date.now(), timeDelete: Date.now()+999999999,
+        iv: req.body.iv
     });
 
     res.json({id: hash});

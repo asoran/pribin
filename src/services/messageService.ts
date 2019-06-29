@@ -40,7 +40,8 @@ export class MessageService {
             id: hash, content: body.content, key: body.key,
             deleteAfterFirstRead: body.deleteAfterFirstRead,
             timeCreate: body.timeCreate,
-            timeDelete: body.timeDelete
+            timeDelete: body.timeDelete,
+            iv: body.iv
         });
 
         MessageService.messages.set(hash, m);
@@ -62,4 +63,5 @@ interface _msg_body {
     deleteAfterFirstRead: boolean;
     timeCreate: number;
     timeDelete: number;
+    iv: Uint8Array;
 }

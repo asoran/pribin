@@ -1,5 +1,5 @@
 // http://www.unicode.org/versions/Unicode9.0.0/UnicodeStandard-9.0.pdf
-// 1000+ 
+// 1000+
 /*
 async function toUTF8Array(str) {
     var utf8 = [];
@@ -7,13 +7,13 @@ async function toUTF8Array(str) {
         var charcode = str.charCodeAt(i);
         if (charcode < 0x80) utf8.push(charcode);
         else if (charcode < 0x800) {
-            utf8.push(0xc0 | (charcode >> 6), 
-                      0x80 | (charcode & 0x3f));
+            utf8.push(0xc0 | (charcode >> 6),
+                    0x80 | (charcode & 0x3f));
         }
         else if (charcode < 0xd800 || charcode >= 0xe000) {
-            utf8.push(0xe0 | (charcode >> 12), 
-                      0x80 | ((charcode>>6) & 0x3f), 
-                      0x80 | (charcode & 0x3f));
+            utf8.push(0xe0 | (charcode >> 12),
+                    0x80 | ((charcode>>6) & 0x3f),
+                    0x80 | (charcode & 0x3f));
         }
         // surrogate pair
         else {
@@ -22,11 +22,11 @@ async function toUTF8Array(str) {
             // subtracting 0x10000 and splitting the
             // 20 bits of 0x0-0xFFFFF into two halves
             charcode = 0x10000 + (((charcode & 0x3ff)<<10)
-                      | (str.charCodeAt(i) & 0x3ff));
-            utf8.push(0xf0 | (charcode >>18), 
-                      0x80 | ((charcode>>12) & 0x3f), 
-                      0x80 | ((charcode>>6) & 0x3f), 
-                      0x80 | (charcode & 0x3f));
+                    | (str.charCodeAt(i) & 0x3ff));
+            utf8.push(0xf0 | (charcode >>18),
+                    0x80 | ((charcode>>12) & 0x3f),
+                    0x80 | ((charcode>>6) & 0x3f),
+                    0x80 | (charcode & 0x3f));
         }
     }
     return utf8;
@@ -40,15 +40,7 @@ crypt:
     return cipher.toHexa
 */
 (() => {
-const stringToUtf8 = (str) => unescape(encodeURIComponent(str));
-const utf8ToString = (str) => decodeURIComponent(escape(str));
-
-// String to Base64
-const str2b64 = msg => btoa(stringToUtf8(msg));
-// Base64 to String
-const b642str = msg => utf8ToString(atob(msg));
-
-const arrayBufferToString = (arr) => [...arr].map(x => String.fromCharCode(x)).join('');
+const arrayBufferToString = (arr) => String.fromCharCode(...arr);
 const stringToArrayBuffer = (str) => new Uint8Array(str.split('').map(x => x.charCodeAt(0)));
 
 // Generate a new random (size * 8) bits key
@@ -58,7 +50,7 @@ async function generateKey(keySize) {
     return await window.crypto.subtle.generateKey({
         name: 'AES-GCM',
         length: keySize, // 128, 192, or 256.
-    }, false, ['encrypt', 'decrypt', 'deriveKey']);
+    }, true, ['encrypt', 'decrypt']);
 }
 
 async function encrypt(params, key, data) {
@@ -70,29 +62,48 @@ async function decrypt(params, key, data) {
 }
 
 
-(async () => {
+// (async () => {
+//     a = await generateKey(256);
 
-    key = await crypto.subtle.importKey(
-        'raw',
-        a,
-        'AES-GCM',
-        false,
-        ['encrypt', 'decrypt',],
-    );
+//     exp = await crypto.subtle.exportKey('raw', a);
+//     console.log(exp);
+//     console.log(new Uint8Array(exp));
+//     console.log(new Uint16Array(exp));
 
-    console.log(new Uint8Array(await encrypt(key, 'Salut :D')));
+//     key = await crypto.subtle.importKey(
+//         'raw',
+//         exp,
+//         'AES-GCM',
+//         false,
+//         ['encrypt', 'decrypt',],
+//     );
 
-})();
+//     console.log(key);
+
+//     let iv = crypto.getRandomValues(new Uint8Array(12)); // 96 bits/8 = 12
+//     let params = {
+//         name: 'AES-GCM',
+//         iv, // 96 bits
+    
+//         tagLength: 128, // 96, 104, 112, 120 or 128
+//     }
+
+//     let omg = 'Salut :D';
+//     console.log(new Uint8Array(await encrypt(params, key, new Uint8Array(omg.split('').map(x => x.charCodeAt(0))))));
+
+// })();
 
 
 // EmPkHSvY4xZvuQV9expMYZP2VKNeiV8QSZbnQrAyZXEDvbQRSXVrXg==
-const TEXT_A_CODE = 'Coucou 😮Coucou 😮Coucou 😮Coucou 😮';
-async function send(msg) {
-    let plainArr = stringToArrayBuffer(stringToUtf8(msg));
+const TEXT_A_CODE = 'Coucou 😊Coucou😊Coucou 😊Coucou😊';
+async function send(msg) {
+    let plainArr = new TextEncoder().encode(msg);
 
     let iv = generayeRandomUint8Array(96/8); // 96 bits/8 = 12
 
-    let keyArr = await generateKey(256);
+    let key = await generateKey(256);
+    let keyArr = new Uint8Array(await crypto.subtle.exportKey('raw', key));
+    let keyPlain64 = btoa(String.fromCharCode(...keyArr));
 
     let params = {
         name: 'AES-GCM',
@@ -101,37 +112,41 @@ async function send(msg) {
         tagLength: 128, // 96, 104, 112, 120 or 128
     }
 
-    console.log('key', keyArr);
-    let cipherArr = new Uint8Array(await encrypt(params, keyArr, plainArr));
-    console.log('arr', cipherArr);
-    let cipherPlain = str2b64(arrayBufferToString(cipherArr));
-    console.log("-----");
-    console.log(msg);
-    console.log(plainArr);
-    console.log(params);
-    console.log(keyArr);
-    console.log('iv', iv);
-    console.log(cipherArr);
-    console.log(cipherPlain);
-    console.log(cipherPlain.length);
-    console.log("-----");
+    let cipherArr = new Uint8Array(await encrypt(params, key, plainArr));
+    let cipherPlain = btoa(String.fromCharCode(...cipherArr))
 
-    get(params, keyArr, cipherPlain);
+    get(params, keyPlain64, cipherPlain);
 }
 
-async function get(params, key, cipherPlain) {
-    console.log(cipherPlain);
+async function get(params, key64, cipherPlain) {
+    console.log(params, key64, cipherPlain);
 
-    let cipherArr = stringToArrayBuffer(b642str(cipherPlain));
+    let cipherArr = new Uint8Array(atob(cipherPlain).split('').map(x => x.charCodeAt(0)));
+    let keyArr = new Uint8Array(atob(key64).split('').map(x => x.charCodeAt(0)));
+
+    let key = await crypto.subtle.importKey(
+        'raw',
+        keyArr,
+        'AES-GCM',
+        false,
+        ['encrypt', 'decrypt',]
+    );
 
     let msgArr = new Uint8Array(await decrypt(params, key, cipherArr));
-    let msgPlain = utf8ToString(arrayBufferToString(msgArr));
+    let msgPlain = new TextDecoder().decode(msgArr);
 
-    console.log(cipherArr);
+    console.log(cipherPlain);
+    console.log(key64);
     console.log(msgArr);
     console.log(msgPlain);
+
 }
 
 send(TEXT_A_CODE);
 
 })();
+
+// String.prototype.codePointAt.call('')
+// https://github.com/github/gitignore
+// http://justinhileman.info/article/git-pretty/full/
+

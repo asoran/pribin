@@ -4,62 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script type="text/javascript" src="https://cdn.rawgit.com/ricmoo/aes-js/e27b99df/index.js"></script>
-    <script type="text/javascript" src="javascript/crypt.js"></script>
+    <script type="text/javascript" src="javascript/full.js"></script>
     <title>Pribin</title>
 </head>
-<body>
+<body onload="checkHeader()">
     <div>
+        <div id="error"></div>
         <label for="text"></label>
         <textarea name="text" cols="50" rows="20" id="text" type="text"></textarea>
         <br>
-        <button onclick="createNewMessage()">New Message</button>
+        <button onclick="save()">New Message</button>
         <div id="url"></div>
     </div>
 
 </body>
 
 <script>
-    const keySize = 16;
+    const API_URL = '/api/v1/message/'
 
-    function createNewMessage() {
-        // ---- Encrypt
-        const key = generateKey(keySize);
-        const text = document.getElementById('text').value;
+    async function fetchJsonGet(url) {
+        return fetch(url, {method: 'GET',})
+            .then(resp => resp.json());
+    }
 
-        // Put the key in the url as base64 text
-        const url = str2b64([...key].map(x => String.fromCharCode(x)).join(''));
-        const cipher = encryptText(text, key);
-
-        // ---- Decrypt
-        // Decode the url to get the url (b64 -> Uint8Array)
-        const _key = new Uint8Array(b642str(url).split('').map(x => x.charCodeAt(0)));
-        const decoded = decryptText(cipher, _key);
-
-        console.log(cipher);
-        console.log(decoded);
-        console.log(url);
-
-        fetch('/api/v1/message/', {
+    async function fetchJsonPost(url, body) {
+        return fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                msg: cipher,
-            }),
-        })
-        .then(x => x.json())
-        .then(x => {
-            const pass = false;
+            body: JSON.stringify(body),
+        }).then(resp => resp.json());
+    }
 
-            console.log('hash', x);
-            const linkUrl = `/s/?${x.id}${pass?'=1':''}#${url}`;
-            const link = `<a href=${linkUrl}>${linkUrl}</a>`
-            console.log(link);
-            
-            document.getElementById('url').innerHTML = link;
-        });
+    async function save() {
+        let value = document.getElementById('text').value;
+        let rep = await send(value);
+        
+        let body = {
+            msg: rep.cipherPlain,
+            iv: rep.iv
+        };
+
+        let json = await fetchJsonPost(API_URL + 'new', body);
+        let id = json.id;
+
+        document.getElementById('url').innerHTML =
+            `<a targer="_blank" href="/?${id}#${rep.keyPlain64}">/?${id}#${rep.keyPlain64}</a>`;
+    }
+
+    async function checkHeader() {
+        const query = window.location.search.substring(1);
+        const hash = window.location.hash.substring(1);
+
+        console.log(query, hash);
+        if(query == '' || hash == '') {
+            ;
+        } else {
+            let rep = await fetchJsonGet('/api/v1/message/' + query);
+            if(rep.error) {
+                document.getElementById('error').innerHTML = 
+                    'An error has occured: ' + rep.error;
+            } else {
+                console.log(rep);
+                let params = {
+                    name: 'AES-GCM',
+                    iv: new Uint8Array(Object.values(rep.message.iv)),
+                    tagLength: 128
+                }
+
+                text = await get(params, hash, rep.message.content);
+                document.getElementById('text').value = text;
+            }
+        }
+
     }
 
 </script>

@@ -7,11 +7,16 @@ export default class Message {
     timeCreate: number;
     timeDelete: number;
 
+    iv: Uint8Array;
+
     constructor(id: string, content: string, key: string,
-            deleteAfterFirstRead: boolean, timeCreate: number, timeDelete: number) {
+            deleteAfterFirstRead: boolean, timeCreate: number, timeDelete: number,
+            iv: Uint8Array) {
         this.id = id;
         this.content = content;
         this.key = key;
+
+        this.iv = iv;
 
         this.deleteAfterFirstRead = deleteAfterFirstRead;
         this.timeCreate = timeCreate;
@@ -21,7 +26,8 @@ export default class Message {
     static fromJson(json: _msg_body) {
         return new Message(
             json.id, json.content, json.key,
-            json.deleteAfterFirstRead, json.timeCreate, json.timeDelete
+            json.deleteAfterFirstRead, json.timeCreate, json.timeDelete,
+            json.iv
         );
     }
 
@@ -49,4 +55,5 @@ interface _msg_body {
     deleteAfterFirstRead: boolean;
     timeCreate: number;
     timeDelete: number;
+    iv: Uint8Array;
 }
