@@ -28,10 +28,12 @@ MessageRoute.post('/new', (req, res) => {
     // if(req.body.msg === undefined)
     //     res.status(400).json({status: 400, error: 'Body malformed'});
 
-    const [content, iv, deleteAfterFirstRead] =
-        [req.body.content, req.body.iv, req.body.deleteAfterFirstRead];
+    const [content, iv, deleteAfterFirstRead, deleteIn] =
+        [req.body.content, req.body.iv,
+            req.body.deleteAfterFirstRead, req.body.timeDelete];
+
     const timeCreate = Date.now(),
-          timeDelete = Date.now() + (1000*60*60);
+          timeDelete = Date.now() + deleteIn;
 
     const id = messageService.register({
         id: '', content, iv, deleteAfterFirstRead,

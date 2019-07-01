@@ -34,7 +34,7 @@ export class MessageService {
     }
 
     register(body: IMessage): string {
-        const hash = createHash('md5').update(body.content).digest('base64');
+        const hash = createHash('md5').update(body.content).digest('hex');
         const m = Message.fromJson({
             id: hash, content: body.content, iv: body.iv,
             deleteAfterFirstRead: body.deleteAfterFirstRead,

@@ -25,6 +25,11 @@ app.use('/api/v1', apiRoutes);
 
 // ===========================================
 
+app.get('/lib/full.js', (req, res) => {
+    res.setHeader('Content-Type', 'text/javascript');
+    res.sendFile(path.join(__dirname, 'lib/full.js'));
+});
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('*', (req, res) => {

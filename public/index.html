@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script type="text/javascript" src="javascript/full.js"></script>
+    <script type="text/javascript" src="lib/full.js"></script>
     <title>Pribin</title>
 </head>
 <body onload="checkHeader()">
@@ -16,7 +16,6 @@
         <button onclick="save()">New Message</button>
         <div id="url"></div>
     </div>
-
 </body>
 
 <script>
@@ -39,47 +38,51 @@
 
     async function save() {
         let value = document.getElementById('text').value;
-        let rep = await send(value);
-        
-        let body = {
-            msg: rep.cipherPlain,
-            iv: rep.iv
-        };
+        let resp = await encrypt(value);
+
+        const [content, iv, key]
+            = [resp.cipherPlain, resp.ivPlain, resp.keyPlain64];
+        const deleteAfterFirstRead = false,
+              deleteIn = (1000*60*60); // 1h
+
+        let body = {content, iv, deleteAfterFirstRead, deleteIn};
 
         let json = await fetchJsonPost(API_URL + 'new', body);
         let id = json.id;
 
         document.getElementById('url').innerHTML =
-            `<a targer="_blank" href="/?${id}#${rep.keyPlain64}">/?${id}#${rep.keyPlain64}</a>`;
+            `<a targer="_blank" href="/?${id}#${key}">/?${id}#${key}</a>`;
     }
 
     async function checkHeader() {
-        const query = window.location.search.substring(1);
-        const hash = window.location.hash.substring(1);
+        const hash = window.location.search.substring(1);
+        const key = window.location.hash.substring(1);
 
-        console.log(query, hash);
-        if(query == '' || hash == '') {
+        console.log(hash, key);
+        if(hash == '' || key == '') {
             ;
         } else {
-            let rep = await fetchJsonGet('/api/v1/message/' + query);
+            let rep = await fetchJsonGet('/api/v1/message/' + hash);
             if(rep.error) {
                 document.getElementById('error').innerHTML = 
                     'An error has occured: ' + rep.error;
             } else {
                 console.log(rep);
+                const cipher = rep.message.content;
+                const _iv = rep.message.iv;
+                const iv = stringToArrayBuffer(atob(_iv));
+
                 let params = {
                     name: 'AES-GCM',
-                    iv: new Uint8Array(Object.values(rep.message.iv)),
+                    iv,
                     tagLength: 128
                 }
 
-                text = await get(params, hash, rep.message.content);
+                const text = await decrypt(params, key, cipher);
                 document.getElementById('text').value = text;
             }
         }
-
     }
-
 </script>
 
 </html>
