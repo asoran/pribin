@@ -2,11 +2,11 @@
     "name": "pribin",
     "version": "1.0.0",
     "description": "Private bin but in NodeJs >>>>>>>> php",
-    "main": "lib/index.js",
+    "main": "dist/index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "tsc",
-        "start": "node lib/index.js",
+        "start": "node dist/index.js",
         "all": "npm run build && npm start"
     },
     "author": "aquayayawoke",

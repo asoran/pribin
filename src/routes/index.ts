@@ -1,5 +1,1 @@
-import messages from "./routes.messages";
-
-export default {
-    messages
-};
+export * from './routes.messages'

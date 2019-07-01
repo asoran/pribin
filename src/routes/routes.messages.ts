@@ -1,48 +1,42 @@
 import { Router } from "express";
-import { MessageService } from "../services/messageService";
-import Message from "../models/Message";
+import { MessageService } from "../services";
 
-const router = Router();
+export const MessageRoute = Router();
 
-router.use((req, res, next) => {
-    console.log('Request to ', req.url);
-    next();
-});
+// router.use((req, res, next) => {
+//     console.log('Request to ', req.url);
+//     next();
+// });
 
-router.get('/:hash', (req, res) => {
+MessageRoute.get('/:hash', (req, res) => {
     const hash: string = req.params.hash;
 
     const messageService = new MessageService();
     const m = messageService.getMessageAndCheck(hash);
 
     if(m === undefined) {
-        res.json({message: null, error: 'No message found'});
+        res.status(404).json({message: null, error: 'No message found'});
     } else {
-        res.json({message: m});
+        res.status(200).json({message: m});
     }
 });
 
-router.post('/new', (req, res) => {
-
+MessageRoute.post('/new', (req, res) => {
     const messageService = new MessageService();
-    console.log(req.body);
+    //console.log(req.body);
 
-    if(req.body.msg === undefined)
-        res.status(400).json({status: 400, error: 'Body malformed'});
+    // if(req.body.msg === undefined)
+    //     res.status(400).json({status: 400, error: 'Body malformed'});
 
-    const hash = messageService.register({
-        content: req.body.msg, key: 'key', deleteAfterFirstRead: false,
-        timeCreate: Date.now(), timeDelete: Date.now()+999999999,
-        iv: req.body.iv
+    const [content, iv, deleteAfterFirstRead] =
+        [req.body.content, req.body.iv, req.body.deleteAfterFirstRead];
+    const timeCreate = Date.now(),
+          timeDelete = Date.now() + (1000*60*60);
+
+    const id = messageService.register({
+        id: '', content, iv, deleteAfterFirstRead,
+        timeCreate, timeDelete
     });
 
-    res.json({id: hash});
+    res.json({id});
 });
-
-function checkJsonMatchMessage(json: any): boolean {
-    if(json.message === undefined)
-        return false;
-    return Message.checkJson(json.message);
-}
-
-export default router;

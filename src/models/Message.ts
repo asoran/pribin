@@ -1,21 +1,28 @@
-export default class Message {
+export interface IMessage {
     id: string;
     content: string;
-    key: string;
+    iv: string;
+    // key: string;
+
+    deleteAfterFirstRead: boolean;
+    timeCreate: number;
+    timeDelete: number;
+}
+
+export class Message implements IMessage {
+    id: string;
+    content: string;
+    iv: string;
 
     deleteAfterFirstRead: boolean;
     timeCreate: number;
     timeDelete: number;
 
-    iv: Uint8Array;
-
-    constructor(id: string, content: string, key: string,
-            deleteAfterFirstRead: boolean, timeCreate: number, timeDelete: number,
-            iv: Uint8Array) {
+    constructor(id: string, content: string, iv: string,
+            deleteAfterFirstRead: boolean,timeCreate: number, timeDelete: number,
+            ) {
         this.id = id;
         this.content = content;
-        this.key = key;
-
         this.iv = iv;
 
         this.deleteAfterFirstRead = deleteAfterFirstRead;
@@ -23,37 +30,26 @@ export default class Message {
         this.timeDelete = timeDelete;
     }
 
-    static fromJson(json: _msg_body) {
+    static fromJson(json: IMessage) {
         return new Message(
-            json.id, json.content, json.key,
-            json.deleteAfterFirstRead, json.timeCreate, json.timeDelete,
-            json.iv
+            json.id, json.content, json.iv,
+            json.deleteAfterFirstRead, json.timeCreate, json.timeDelete,  
         );
     }
 
-    static checkJson(json: any) {
-        if(json.id === undefined)
-            return false;
-        if(json.content === undefined)
-            return false;
-        if(json.key === undefined)
-            return false;
-        if(json.deleteAfterFirstRead === undefined)
-            return false;
-        if(json.timeCreate === undefined)
-            return false;
-        if(json.timeDelete === undefined)
-            return false;
-        return true;
-    }
-}
-
-interface _msg_body {
-    id: string;
-    content: string;
-    key: string;
-    deleteAfterFirstRead: boolean;
-    timeCreate: number;
-    timeDelete: number;
-    iv: Uint8Array;
+    // static checkJson(json: any) {
+    //     if(json.id === undefined)
+    //         return false;
+    //     if(json.content === undefined)
+    //         return false;
+    //     if(json.key === undefined)
+    //         return false;
+    //     if(json.deleteAfterFirstRead === undefined)
+    //         return false;
+    //     if(json.timeCreate === undefined)
+    //         return false;
+    //     if(json.timeDelete === undefined)
+    //         return false;
+    //     return true;
+    // }
 }

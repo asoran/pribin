@@ -1,4 +1,4 @@
-import Message from "../models/Message";
+import { Message, IMessage } from "../models";
 import { createHash } from "crypto";
 
 export class MessageService {
@@ -7,17 +7,16 @@ export class MessageService {
 
     constructor() { };
 
-    has(hash: string): boolean {
-        return MessageService.messages.has(hash);
-    }
-
     private getMessage(hash: string): Message | undefined {
-        console.log(MessageService.messages);
         return MessageService.messages.get(hash);
     }
-    
+
     private delete(hash: string): boolean {
         return MessageService.messages.delete(hash);
+    }
+
+    has(hash: string): boolean {
+        return MessageService.messages.has(hash);
     }
 
     getMessageAndCheck(hash: string): Message | undefined {
@@ -34,34 +33,15 @@ export class MessageService {
         return m;
     }
 
-    register(body: _msg_body): string {
-        const hash = createHash('md5').update(body.content + body.key).digest('hex');
+    register(body: IMessage): string {
+        const hash = createHash('md5').update(body.content).digest('base64');
         const m = Message.fromJson({
-            id: hash, content: body.content, key: body.key,
+            id: hash, content: body.content, iv: body.iv,
             deleteAfterFirstRead: body.deleteAfterFirstRead,
-            timeCreate: body.timeCreate,
-            timeDelete: body.timeDelete,
-            iv: body.iv
+            timeCreate: body.timeCreate, timeDelete: body.timeDelete,
         });
 
         MessageService.messages.set(hash, m);
-
         return hash;
     }
-
-    isKeyOk(hash: string, key: string): boolean {
-        const m = this.getMessageAndCheck(hash);
-        if(m === undefined)
-            return false;
-        return m.key === key;
-    }
-}
-
-interface _msg_body {
-    content: string;
-    key: string;
-    deleteAfterFirstRead: boolean;
-    timeCreate: number;
-    timeDelete: number;
-    iv: Uint8Array;
 }
